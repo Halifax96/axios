@@ -1,41 +1,48 @@
-const express = require("express");
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 
-var data = require("./data");
-var notes = data.datos;
+const data = require('./data')
+const notas = data.datos
 
-router.get("/:user", function(req, res)  { 
-    let respuesta;
-    let usuario=req.params.user;
-    for(let i=0; i<notes.length; i++){
-        if(notes[i].client==usuario){
-            respuesta=notes[i];
-        }
+router.get('/showall', (req, res) => {
+  res.send(notas)
+})
+
+router.get('/:user', function (req, res) {
+  let respuesta
+  let usuario = req.params.user
+  for (let i = 0; i < notas.length; i++) {
+    if (notas[i].client == usuario) {
+      respuesta = notas[i]
     }
-    console.log(respuesta);
-    return res.json(respuesta); 
-});
+  }
+  return res.json(respuesta)
+})
 
-router.post("/", function(req, res) {  
-    var nota = req.body.nota;
-    console.log(nota);
-    notes.push(nota);
-    res.send(notes);
-});
-
-router.put("/:user/:nota", function(req, res) {  
-    let nota = req.params.nota;
-    let user=req.params.user;
-
-    for(let i=0;i<notes.length; i++){
-        console.log(notes[i].client);
-        if(notes[i].client===user){
-            notes[i].desc=nota;
-        }
-
+router.post('/:user', function (req, res) {
+  const nota = req.body.nota
+  const user = req.params.user
+  let usernotas
+  for (let i = 0; i < notas.length; i++) {
+    if (notas[i].client === user) {
+      usernotas = notas[i].notas
+      nota.id = notas[i].notas.length + 1
+      notas[i].notas.push(nota)
     }
-    res.send(notes);
-});
+  }
+  res.send(usernotas)
+})
+
+router.put('/:user', function (req, res) {
+  let updatedNotas = req.body.notas
+  let user = req.params.user
+  for (let i = 0; i < notas.length; i++) {
+    if (notas[i].client === user) {
+      notas[i].notas = updatedNotas
+    }
+  }
+  res.send(notas)
+})
 
 /*
 router.put("/", function(req, res){    
@@ -44,9 +51,9 @@ router.put("/", function(req, res){
 
     let i = 0;
     let flag = false;
-    while(i<notes.length){
-        if(notes[i].id==idNotaMod){
-            notes[i].nota = contenido;
+    while(i<notas.length){
+        if(notas[i].id==idNotaMod){
+            notas[i].nota = contenido;
             flag = true;
         }
         i++;
@@ -59,20 +66,30 @@ router.put("/", function(req, res){
     }
 });*/
 
+router.delete('/:user/:id', function (req, res) {
+  const idEliminar = req.params.id
+  const user = req.params.user
+  let flag = false
+  //   notas = notas.filter(ele => {
+  //     ele.id != idEliminar
+  //     flag = true
+  //   })
 
-router.delete("/:id", function(req, res) {   
-    let idEliminar = req.params.id;
-    let flag = false;
-    notes = notes.filter((ele) => {
-        ele.id != idEliminar;
-        flag = true;
-    })
-    //Se envían los datos
-    if(flag){
-        res.send("NOTE DELETED RIGHTLY");
-    }else{
-        res.status(400).send("ERROR DELETING NOTE");
+  for (let i = 0; i < notas.length; i++) {
+    if (notas[i].client === user) {
+      flag = true
+      notas[i].notas = notas[i].notas.filter(
+        element => element.id === idEliminar
+      )
     }
-});
+  }
 
-module.exports = router;
+  //Se envían los datos
+  if (flag) {
+    res.send('NOTE DELETED RIGHTLY')
+  } else {
+    res.status(400).send('ERROR DELETING NOTE')
+  }
+})
+
+module.exports = router
